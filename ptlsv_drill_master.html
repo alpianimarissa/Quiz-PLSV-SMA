@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PtLSV Drill Master - Fase F SMA</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts: Plus Jakarta Sans for Premium Look -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX for beautiful math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMath()"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              pastelBg: '#fff3f5',
+              pastelPurple: '#f1eefc',
+              pinkAccent: '#ff8fa3',
+              pinkAccentDark: '#ff5277',
+              successGreen: '#d8f3dc',
+              successGreenText: '#1b4332',
+              dangerRed: '#ffe3e3',
+              dangerRedText: '#c91818',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #fef4f6 0%, #f3effc 100%);
+      min-height: 100vh;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #e2d9f3;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #ffcbd5;
+    }
+    /* Simple Canvas drawing style */
+    #canvas {
+      cursor: crosshair;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="p-3 md:p-6 text-gray-800 antialiased">
+
+  <!-- Top Navigation / Header -->
+  <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+    <div class="flex items-center gap-3">
+      <!-- Pink Sakura Logo -->
+      <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-pink-100">
+        <span class="text-2xl text-brand-pinkAccent animate-pulse">🌸</span>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-bold text-gray-800 tracking-tight">PtLSV Drill Master</h1>
+          <span class="bg-[#ff8fa3] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Fase F SMA</span>
+        </div>
+        <p class="text-xs text-gray-500 font-medium">Batas Nilai Estetis • Latihan Mandiri Komprehensif</p>
+      </div>
+    </div>
+
+    <!-- Stats & Scratchpad Button -->
+    <div class="flex items-center gap-3">
+      <!-- XP Badge -->
+      <div class="bg-amber-50 border border-amber-200 rounded-full px-4 py-2 flex items-center gap-2 shadow-sm">
+        <span class="text-lg">✨</span>
+        <span class="text-xs font-bold text-amber-800">XP Kamu:</span>
+        <span id="xp-counter" class="text-sm font-black text-amber-600">0</span>
+      </div>
+
+      <!-- Scratchpad Toggle Button -->
+      <button onclick="toggleScratchpad(true)" class="bg-white hover:bg-brand-pastelBg text-gray-700 border border-gray-200 hover:border-brand-pinkAccent rounded-full px-5 py-2 flex items-center gap-2 transition duration-300 shadow-sm text-sm font-semibold">
+        <i class="fa-solid fa-signature text-brand-pinkAccent"></i>
+        Papan Cakar
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Sidebar (lg:col-span-4) -->
+    <section class="lg:col-span-4 flex flex-col gap-6">
+      
+      <!-- Analisis Misi Card -->
+      <div class="bg-white rounded-3xl p-5 border border-purple-50 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-sm font-extrabold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-indigo-500"></i> Analisis Misi
+          </h2>
+          <span id="answered-badge" class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">0/35 Terjawab</span>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="bg-green-50 border border-green-100 rounded-2xl p-3 text-center">
+            <p class="text-[10px] uppercase font-bold text-green-700 mb-1">Benar</p>
+            <p id="stat-correct" class="text-2xl font-black text-green-600">0</p>
+          </div>
+          <div class="bg-red-50 border border-red-100 rounded-2xl p-3 text-center">
+            <p class="text-[10px] uppercase font-bold text-red-700 mb-1">Salah</p>
+            <p id="stat-wrong" class="text-2xl font-black text-red-500">0</p>
+          </div>
+          <div class="bg-purple-50 border border-purple-100 rounded-2xl p-3 text-center">
+            <p class="text-[10px] uppercase font-bold text-purple-700 mb-1">Akurasi</p>
+            <p id="stat-accuracy" class="text-2xl font-black text-purple-600">0%</p>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+          <div id="mission-progress-bar" class="bg-gradient-to-r from-brand-pinkAccent to-purple-500 h-full w-0 transition-all duration-500"></div>
+        </div>
+      </div>
+
+      <!-- Pilih Kategori Card -->
+      <div class="bg-white rounded-3xl p-5 border border-purple-50 shadow-sm">
+        <h2 class="text-sm font-extrabold text-gray-700 uppercase tracking-wider flex items-center gap-2 mb-4">
+          <i class="fa-solid fa-tags text-brand-pinkAccent"></i> Pilih Kategori
+        </h2>
+        <div class="flex flex-col gap-1.5" id="category-list">
+          <button onclick="filterCategory('semua')" id="cat-semua" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 bg-brand-pinkAccent text-white">
+            🌸 Semua Kategori (1-35)
+          </button>
+          <button onclick="filterCategory('mudah-langsung')" id="cat-mudah-langsung" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200">
+            • A. PLSV Langsung - Mudah (1-5)
+          </button>
+          <button onclick="filterCategory('mudah-cerita')" id="cat-mudah-cerita" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200">
+            • B. PLSV Cerita - Mudah (6-10)
+          </button>
+          <button onclick="filterCategory('sedang-langsung')" id="cat-sedang-langsung" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200">
+            • C. PLSV Langsung - Sedang (11-15)
+          </button>
+          <button onclick="filterCategory('sedang-cerita')" id="cat-sedang-cerita" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200">
+            • D. PLSV Cerita - Sedang (16-20)
+          </button>
+          <button onclick="filterCategory('hots-langsung')" id="cat-hots-langsung" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200">
+            • E. PLSV Langsung - HOTS (21-30)
+          </button>
+          <button onclick="filterCategory('hots-cerita')" id="cat-hots-cerita" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200">
+            • F. PLSV Cerita - HOTS (31-35)
+          </button>
+        </div>
+      </div>
+
+      <!-- Peta Soal Card -->
+      <div class="bg-white rounded-3xl p-5 border border-purple-50 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-sm font-extrabold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-teal-500"></i> Peta Soal
+          </h2>
+          <span class="text-[10px] text-gray-400 font-medium">Klik nomor untuk melompat</span>
+        </div>
+        <!-- Scrollable Grid -->
+        <div class="grid grid-cols-5 gap-2 max-h-[220px] overflow-y-auto pr-1 custom-scrollbar" id="question-map-grid">
+          <!-- Dynamic generated maps from 1 to 35 -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Quiz Content Panel (lg:col-span-8) -->
+    <section class="lg:col-span-8 bg-white rounded-3xl border border-purple-50 shadow-sm p-6 md:p-8 relative min-h-[500px] flex flex-col justify-between">
+      
+      <!-- Top Badges inside Panel -->
+      <div class="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+        <span id="current-category-pill" class="bg-emerald-50 text-emerald-800 text-xs font-extrabold px-3 py-1.5 rounded-full border border-emerald-100">
+          Kategori: Memuat...
+        </span>
+        <span id="xp-bonus-pill" class="bg-yellow-50 text-yellow-700 text-xs font-bold px-3 py-1.5 rounded-full border border-yellow-200">
+          +10 XP
+        </span>
+      </div>
+
+      <!-- Question Box -->
+      <div class="flex-grow flex flex-col justify-center">
+        <p id="display-number" class="text-sm font-bold text-gray-400 mb-1">Soal No. 1</p>
+        <div id="question-text" class="text-lg md:text-xl font-bold text-gray-800 mb-6 leading-relaxed">
+          Memuat pertanyaan...
+        </div>
+
+        <!-- Answers Area -->
+        <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <!-- Dynamic 4 Options (A, B, C, D) -->
+        </div>
+
+        <!-- Discussion / Explanation Panel (Initially hidden) -->
+        <div id="explanation-panel" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-gray-700 animate-fadeIn">
+          <h3 class="font-bold text-amber-900 mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-graduation-cap"></i> Pembahasan Langkah demi Langkah:
+          </h3>
+          <p id="explanation-text" class="leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- Footer Navigation inside Panel -->
+      <div class="flex justify-between items-center border-t border-gray-100 pt-5 mt-4">
+        <button id="btn-prev" onclick="navigateQuestion(-1)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-5 py-2.5 text-xs font-bold transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-arrow-left"></i> Sebelumnya
+        </button>
+        
+        <span class="text-xs text-gray-400 font-bold" id="pagination-info">1 / 35 Soal</span>
+
+        <button id="btn-next" onclick="navigateQuestion(1)" class="bg-brand-pinkAccent hover:bg-brand-pinkAccentDark text-white rounded-full px-5 py-2.5 text-xs font-bold transition duration-200 flex items-center gap-2">
+          Selanjutnya <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Papan Cakar (Scratchpad Modal) -->
+  <div id="scratchpad-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden animate-zoomIn flex flex-col max-h-[90vh]">
+      <!-- Scratchpad Header -->
+      <div class="bg-brand-pastelPurple p-5 flex justify-between items-center border-b border-purple-100">
+        <div class="flex items-center gap-2 text-indigo-900">
+          <i class="fa-solid fa-pencil-ruler text-xl"></i>
+          <h3 class="font-extrabold text-base">Papan Cakar Interaktif</h3>
+        </div>
+        <button onclick="toggleScratchpad(false)" class="text-gray-500 hover:text-gray-800 text-lg">
+          <i class="fa-solid fa-circle-xmark"></i>
+        </button>
+      </div>
+      
+      <!-- Canvas Area -->
+      <div class="bg-slate-50 flex-grow relative overflow-hidden" id="canvas-container" style="min-height: 400px;">
+        <canvas id="canvas" class="w-full h-full block"></canvas>
+      </div>
+
+      <!-- Controls Footer -->
+      <div class="p-4 bg-white border-t border-gray-100 flex flex-wrap justify-between items-center gap-3">
+        <!-- Tools & Colors -->
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-500 font-bold">Warna Cakar:</span>
+          <button onclick="setCanvasColor('#1e293b')" class="w-8 h-8 rounded-full bg-slate-800 border-2 border-white ring-2 ring-transparent hover:ring-indigo-300 transition duration-150" id="color-slate"></button>
+          <button onclick="setCanvasColor('#ef4444')" class="w-8 h-8 rounded-full bg-red-500 border-2 border-white ring-2 ring-transparent hover:ring-indigo-300 transition duration-150" id="color-red"></button>
+          <button onclick="setCanvasColor('#3b82f6')" class="w-8 h-8 rounded-full bg-blue-500 border-2 border-white ring-2 ring-transparent hover:ring-indigo-300 transition duration-150" id="color-blue"></button>
+          <button onclick="setCanvasColor('#10b981')" class="w-8 h-8 rounded-full bg-emerald-500 border-2 border-white ring-2 ring-transparent hover:ring-indigo-300 transition duration-150" id="color-green"></button>
+          
+          <div class="h-6 w-px bg-gray-200 mx-2"></div>
+          
+          <span class="text-xs text-gray-500 font-bold">Ketebalan:</span>
+          <select id="brush-size" class="text-xs border border-gray-200 rounded-lg p-1" onchange="setBrushSize(this.value)">
+            <option value="2">Tipis (2px)</option>
+            <option value="4" selected>Sedang (4px)</option>
+            <option value="8">Tebal (8px)</option>
+          </select>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <button onclick="clearCanvas()" class="px-4 py-2 border border-gray-200 hover:border-red-300 hover:text-red-600 rounded-xl text-xs font-bold text-gray-600 transition duration-150">
+            <i class="fa-solid fa-trash-can mr-1"></i> Bersihkan Canvas
+          </button>
+          <button onclick="toggleScratchpad(false)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition duration-150">
+            Simpan & Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio Context Generator for Retro Game Sounds -->
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      
+      if (type === 'correct') {
+        // High upbeat double beep
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime + 0.1);
+        osc.stop(audioCtx.currentTime + 0.25);
+      } else if (type === 'wrong') {
+        // Lower buzzing sound
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        osc.start();
+        osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+        gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'click') {
+        // Subtle crisp tick
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        osc.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        osc.stop(audioCtx.currentTime + 0.05);
+      }
+    }
+  </script>
+
+  <!-- Main Database of 35 Questions based exactly on the PDF -->
+  <script>
+    const questionsData = [
+      // A. PLSV Langsung - Mudah (1-5)
+      {
+        id: 1,
+        category: "PLSV Langsung - Mudah",
+        categoryKey: "mudah-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$x + 7 = 15$$",
+        options: ["x = 6", "x = 8", "x = 10", "x = 22"],
+        correctIndex: 1,
+        explanation: "Pindahkan angka 7 ke ruas kanan dengan mengubah tandanya menjadi negatif:<br>$$x = 15 - 7$$<br>$$x = 8$$"
+      },
+      {
+        id: 2,
+        category: "PLSV Langsung - Mudah",
+        categoryKey: "mudah-langsung",
+        question: "Tentukan nilai $a$ dari persamaan berikut:<br>$$a - 12 = 8$$",
+        options: ["a = 20", "a = -4", "a = 4", "a = 96"],
+        correctIndex: 0,
+        explanation: "Pindahkan angka -12 ke ruas kanan dengan mengubah tandanya menjadi positif:<br>$$a = 8 + 12$$<br>$$a = 20$$"
+      },
+      {
+        id: 3,
+        category: "PLSV Langsung - Mudah",
+        categoryKey: "mudah-langsung",
+        question: "Tentukan nilai $n$ dari persamaan berikut:<br>$$3n = 27$$",
+        options: ["n = 6", "n = 9", "n = 24", "n = 81"],
+        correctIndex: 1,
+        explanation: "Bagi kedua ruas dengan angka 3:<br>$$n = \\frac{27}{3}$$<br>$$n = 9$$"
+      },
+      {
+        id: 4,
+        category: "PLSV Langsung - Mudah",
+        categoryKey: "mudah-langsung",
+        question: "Tentukan nilai $p$ dari persamaan berikut:<br>$$\\frac{p}{4} = 5$$",
+        options: ["p = 9", "p = 1", "p = 20", "p = 1.25"],
+        correctIndex: 2,
+        explanation: "Kalikan kedua ruas dengan angka 4:<br>$$p = 5 \\times 4$$<br>$$p = 20$$"
+      },
+      {
+        id: 5,
+        category: "PLSV Langsung - Mudah",
+        categoryKey: "mudah-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$2x + 3 = 17$$",
+        options: ["x = 7", "x = 10", "x = 14", "x = 5"],
+        correctIndex: 0,
+        explanation: "Kurangi kedua ruas dengan 3 terlebih dahulu:<br>$$2x = 17 - 3$$<br>$$2x = 14$$<br>Bagi kedua ruas dengan 2:<br>$$x = \\frac{14}{2} = 7$$"
+      },
+      // B. PLSV Cerita - Mudah (6-10)
+      {
+        id: 6,
+        category: "PLSV Cerita - Mudah",
+        categoryKey: "mudah-cerita",
+        question: "Umur Rina 7 tahun lebih tua daripada umur Adi. Jika umur Rina 19 tahun, berapa umur Adi?",
+        options: ["26 tahun", "12 tahun", "14 tahun", "7 tahun"],
+        correctIndex: 1,
+        explanation: "Misalkan umur Adi adalah $x$.<br>Umur Rina = $x + 7$<br>$$x + 7 = 19$$<br>$$x = 19 - 7 = 12$$<br>Jadi, umur Adi adalah 12 tahun."
+      },
+      {
+        id: 7,
+        category: "PLSV Cerita - Mudah",
+        categoryKey: "mudah-cerita",
+        question: "Sebuah bilangan ditambah 12 menghasilkan 30. Berapakah bilangan tersebut?",
+        options: ["18", "42", "20", "15"],
+        correctIndex: 0,
+        explanation: "Misalkan bilangan tersebut adalah $y$.<br>$$y + 12 = 30$$<br>$$y = 30 - 12 = 18$$"
+      },
+      {
+        id: 8,
+        category: "PLSV Cerita - Mudah",
+        categoryKey: "mudah-cerita",
+        question: "Harga sebuah buku adalah Rp8.000. Jika Andi membeli beberapa buku dan total harga yang dibayar Rp40.000, berapa buku yang dibeli Andi?",
+        options: ["4 buku", "5 buku", "6 buku", "8 buku"],
+        correctIndex: 1,
+        explanation: "Misalkan banyak buku yang dibeli adalah $b$.<br>$$8.000 \\times b = 40.000$$<br>$$b = \\frac{40.000}{8.000} = 5$$ buku."
+      },
+      {
+        id: 9,
+        category: "PLSV Cerita - Mudah",
+        categoryKey: "mudah-cerita",
+        question: "Panjang sebuah tali dibagi menjadi 5 bagian sama panjang. Jika setiap bagian panjangnya 4 meter, berapa panjang tali semula?",
+        options: ["9 meter", "15 meter", "20 meter", "25 meter"],
+        correctIndex: 2,
+        explanation: "Misalkan panjang tali semula adalah $t$.<br>$$\\frac{t}{5} = 4$$<br>$$t = 4 \\times 5 = 20$$ meter."
+      },
+      {
+        id: 10,
+        category: "PLSV Cerita - Mudah",
+        categoryKey: "mudah-cerita",
+        question: "Jumlah uang Sinta ditambah Rp25.000 menjadi Rp80.000. Berapa uang Sinta mula-mula?",
+        options: ["Rp55.000", "Rp65.000", "Rp105.000", "Rp50.000"],
+        correctIndex: 0,
+        explanation: "Misalkan uang Sinta mula-mula adalah $u$.<br>$$u + 25.000 = 80.000$$<br>$$u = 80.000 - 25.000 = 55.000$$<br>Jadi uang Sinta mula-mula adalah Rp55.000."
+      },
+      // C. PLSV Langsung - Sedang (11-15)
+      {
+        id: 11,
+        category: "PLSV Langsung - Sedang",
+        categoryKey: "sedang-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$4x - 7 = 21$$",
+        options: ["x = 7", "x = 3.5", "x = 8", "x = 5"],
+        correctIndex: 0,
+        explanation: "Pindahkan -7 ke kanan:<br>$$4x = 21 + 7$$<br>$$4x = 28$$<br>$$x = \\frac{28}{4} = 7$$"
+      },
+      {
+        id: 12,
+        category: "PLSV Langsung - Sedang",
+        categoryKey: "sedang-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$3(2x - 1) = 15$$",
+        options: ["x = 2", "x = 3", "x = 4", "x = 1"],
+        correctIndex: 1,
+        explanation: "Sederhanakan tanda kurung:<br>$$6x - 3 = 15$$<br>$$6x = 15 + 3$$<br>$$6x = 18$$<br>$$x = 3$$"
+      },
+      {
+        id: 13,
+        category: "PLSV Langsung - Sedang",
+        categoryKey: "sedang-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$5x + 8 = 2x + 29$$",
+        options: ["x = 5", "x = 6", "x = 7", "x = 8"],
+        correctIndex: 2,
+        explanation: "Kelompokkan variabel di satu ruas:<br>$$5x - 2x = 29 - 8$$<br>$$3x = 21$$<br>$$x = 7$$"
+      },
+      {
+        id: 14,
+        category: "PLSV Langsung - Sedang",
+        categoryKey: "sedang-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$\\frac{x + 5}{3} = 7$$",
+        options: ["x = 16", "x = 26", "x = 12", "x = 21"],
+        correctIndex: 0,
+        explanation: "Kalikan silang ruas kanan dengan penyebut:<br>$$x + 5 = 7 \\times 3$$<br>$$x + 5 = 21$$<br>$$x = 21 - 5 = 16$$"
+      },
+      {
+        id: 15,
+        category: "PLSV Langsung - Sedang",
+        categoryKey: "sedang-langsung",
+        question: "Tentukan nilai $x$ dari persamaan berikut:<br>$$\\frac{2x - 1}{4} = 3$$",
+        options: ["x = 5.5", "x = 6.5", "x = 7", "x = 13"],
+        correctIndex: 1,
+        explanation: "Kalikan kedua ruas dengan 4:<br>$$2x - 1 = 12$$<br>$$2x = 13$$<br>$$x = \\frac{13}{2} = 6,5$$"
+      },
+      // D. PLSV Cerita - Sedang (16-20)
+      {
+        id: 16,
+        category: "PLSV Cerita - Sedang",
+        categoryKey: "sedang-cerita",
+        question: "Harga sebuah tas setelah mendapat diskon Rp50.000 menjadi Rp200.000. Berapakah harga tas sebelum diskon?",
+        options: ["Rp150.000", "Rp200.000", "Rp250.000", "Rp300.000"],
+        correctIndex: 2,
+        explanation: "Misalkan harga tas sebelum diskon adalah $H$.<br>$$H - 50.000 = 200.000$$<br>$$H = 200.000 + 50.000 = 250.000$$<br>Jadi harga tas semula adalah Rp250.000."
+      },
+      {
+        id: 17,
+        category: "PLSV Cerita - Sedang",
+        categoryKey: "sedang-cerita",
+        question: "Suatu bilangan dikalikan 4 lalu dikurangi 5 menghasilkan 31. Berapakah bilangan tersebut?",
+        options: ["8", "9", "10", "11"],
+        correctIndex: 1,
+        explanation: "Misalkan bilangan tersebut adalah $z$.<br>$$4z - 5 = 31$$<br>$$4z = 31 + 5 = 36$$<br>$$z = \\frac{36}{4} = 9$$"
+      },
+      {
+        id: 18,
+        category: "PLSV Cerita - Sedang",
+        categoryKey: "sedang-cerita",
+        question: "Keliling sebuah persegi adalah 48 cm. Berapa panjang sisi persegi tersebut?",
+        options: ["12 cm", "24 cm", "8 cm", "16 cm"],
+        correctIndex: 0,
+        explanation: "Rumus keliling persegi adalah $4s$.<br>$$4s = 48$$<br>$$s = \\frac{48}{4} = 12$$ cm."
+      },
+      {
+        id: 19,
+        category: "PLSV Cerita - Sedang",
+        categoryKey: "sedang-cerita",
+        question: "Umur seorang ayah 3 kali umur anaknya. Jika umur ayah 45 tahun, berapa umur anaknya?",
+        options: ["12 tahun", "15 tahun", "20 tahun", "25 tahun"],
+        correctIndex: 1,
+        explanation: "Misalkan umur anak adalah $a$.<br>$$3a = 45$$<br>$$a = \\frac{45}{3} = 15$$ tahun."
+      },
+      {
+        id: 20,
+        category: "PLSV Cerita - Sedang",
+        categoryKey: "sedang-cerita",
+        question: "Sebuah perusahaan membayar gaji pokok Rp2.500.000 dan bonus sehingga total yang diterima karyawan adalah Rp4.000.000. Berapa besar bonus tersebut?",
+        options: ["Rp1.500.000", "Rp2.000.000", "Rp1.000.000", "Rp2.500.000"],
+        correctIndex: 0,
+        explanation: "Misalkan bonus adalah $B$.<br>$$2.500.000 + B = 4.000.000$$<br>$$B = 4.000.000 - 2.500.000 = 1.500.000$$<br>Bonus yang didapatkan adalah Rp1.500.000."
+      },
+      // E. PLSV Langsung - HOTS (21-30)
+      {
+        id: 21,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan linear berikut:<br>$$\\frac{3x - 2}{5} + \frac{x + 4}{2} = 6$$",
+        options: ["x = 3", "x = 4", "x = 5", "x = 6"],
+        correctIndex: 1,
+        explanation: "Kalikan kedua ruas dengan KPK penyebut yaitu 10:<br>$$2(3x - 2) + 5(x + 4) = 60$$<br>$$6x - 4 + 5x + 20 = 60$$<br>$$11x + 16 = 60$$<br>$$11x = 44 \\implies x = 4$$"
+      },
+      {
+        id: 22,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan linear berikut:<br>$$\\frac{2(x - 3)}{3} - \frac{x + 1}{2} = 1$$",
+        options: ["x = 17", "x = 19", "x = 21", "x = 23"],
+        correctIndex: 2,
+        explanation: "Kalikan seluruh persamaan dengan KPK penyebut yaitu 6:<br>$$2[2(x - 3)] - 3(x + 1) = 6$$<br>$$4(x - 3) - 3x - 3 = 6$$<br>$$4x - 12 - 3x - 3 = 6$$<br>$$x - 15 = 6 \\implies x = 21$$"
+      },
+      {
+        id: 23,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan linear bertingkat berikut:<br>$$\\frac{\\frac{x + 5}{2} - 3}{4} = 2$$",
+        options: ["x = 15", "x = 17", "x = 19", "x = 21"],
+        correctIndex: 1,
+        explanation: "Kalikan kedua ruas dengan 4:<br>$$\\frac{x + 5}{2} - 3 = 8$$<br>Tambahkan kedua ruas dengan 3:<br>$$\\frac{x + 5}{2} = 11$$<br>Kalikan kedua ruas dengan 2:<br>$$x + 5 = 22 \\implies x = 17$$"
+      },
+      {
+        id: 24,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan linear berikut:<br>$$\\frac{5x - 1}{6} - \\frac{2x + 4}{3} = -2$$",
+        options: ["x = -3", "x = -2", "x = -1", "x = 0"],
+        correctIndex: 0,
+        explanation: "Kalikan kedua ruas dengan KPK penyebut yaitu 6:<br>$$(5x - 1) - 2(2x + 4) = -12$$<br>$$5x - 1 - 4x - 8 = -12$$<br>$$x - 9 = -12 \\implies x = -3$$"
+      },
+      {
+        id: 25,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Tentukan himpunan penyelesaian dari:<br>$$3(x - 2) - 2(2x + 1) = 7$$",
+        options: ["x = -11", "x = -13", "x = -15", "x = -17"],
+        correctIndex: 2,
+        explanation: "Sederhanakan tanda kurung:<br>$$3x - 6 - 4x - 2 = 7$$<br>$$-x - 8 = 7$$<br>$$-x = 15 \\implies x = -15$$"
+      },
+      {
+        id: 26,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan bertingkat berikut:<br>$$2(3(x - 1) + 4) = 20$$",
+        options: ["x = 2", "x = 3", "x = 4", "x = 5"],
+        correctIndex: 1,
+        explanation: "Bagi kedua ruas dengan 2:<br>$$3(x - 1) + 4 = 10$$<br>Kurangi dengan 4:<br>$$3(x - 1) = 6$$<br>Bagi dengan 3:<br>$$x - 1 = 2 \\implies x = 3$$"
+      },
+      {
+        id: 27,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Tentukan nilai $x$ dari:<br>$$3(2(x + 2) - 5) = 21$$",
+        options: ["x = 2", "x = 3", "x = 4", "x = 5"],
+        correctIndex: 2,
+        explanation: "Bagi kedua ruas dengan 3:<br>$$2(x + 2) - 5 = 7$$<br>Tambahkan 5:<br>$$2(x + 2) = 12$$<br>Bagi dengan 2:<br>$$x + 2 = 6 \\implies x = 4$$"
+      },
+      {
+        id: 28,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan berikut:<br>$$2(3(x - 2) - (x + 1)) = 18$$",
+        options: ["x = 6", "x = 7", "x = 8", "x = 9"],
+        correctIndex: 2,
+        explanation: "Bagi kedua ruas dengan 2:<br>$$3(x - 2) - (x + 1) = 9$$<br>$$3x - 6 - x - 1 = 9$$<br>$$2x - 7 = 9$$<br>$$2x = 16 \\implies x = 8$$"
+      },
+      {
+        id: 29,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Tentukan nilai $x$ dari:<br>$$4(2(x - 1) - 3(x - 2)) = 8$$",
+        options: ["x = 1", "x = 2", "x = 3", "x = 4"],
+        correctIndex: 1,
+        explanation: "Bagi kedua ruas dengan 4:<br>$$2(x - 1) - 3(x - 2) = 2$$<br>$$2x - 2 - 3x + 6 = 2$$<br>$$-x + 4 = 2$$<br>$$-x = -2 \\implies x = 2$$"
+      },
+      {
+        id: 30,
+        category: "PLSV Langsung - HOTS",
+        categoryKey: "hots-langsung",
+        question: "Selesaikan persamaan linear berikut:<br>$$2(3(2x - 1) - 4(x + 2)) = 12$$",
+        options: ["x = 8.5 (atau 17/2)", "x = 7.5", "x = 9.5", "x = 6.5"],
+        correctIndex: 0,
+        explanation: "Bagi kedua ruas dengan 2:<br>$$3(2x - 1) - 4(x + 2) = 6$$<br>$$6x - 3 - 4x - 8 = 6$$<br>$$2x - 11 = 6$$<br>$$2x = 17 \\implies x = 17/2 = 8.5$$"
+      },
+      // F. PLSV Cerita - HOTS (31-35)
+      {
+        id: 31,
+        category: "PLSV Cerita - HOTS",
+        categoryKey: "hots-cerita",
+        question: "Seorang pedagang membeli sejumlah pensil. Jika jumlah pensil tersebut dikurangi 8 lalu hasilnya dibagi 4, diperoleh 6. Berapa jumlah pensil mula-mula?",
+        options: ["24", "30", "32", "36"],
+        correctIndex: 2,
+        explanation: "Misalkan jumlah pensil mula-mula adalah $p$.<br>$$\\frac{p - 8}{4} = 6$$<br>$$p - 8 = 24$$<br>$$p = 24 + 8 = 32$$"
+      },
+      {
+        id: 32,
+        category: "PLSV Cerita - HOTS",
+        categoryKey: "hots-cerita",
+        question: "Harga sebuah jaket setelah mendapat diskon 20% adalah Rp320.000. Jika harga awal jaket dinyatakan dengan $x$, tentukan nilai $x$.",
+        options: ["Rp350.000", "Rp380.000", "Rp400.000", "Rp420.000"],
+        correctIndex: 2,
+        explanation: "Diskon 20% berarti harga setelah diskon adalah 80% dari harga mula-mula ($x$).<br>$$80\\% \\times x = 320.000$$<br>$$0,8x = 320.000$$<br>$$x = \\frac{320.000}{0,8} = 400.000$$"
+      },
+      {
+        id: 33,
+        category: "PLSV Cerita - HOTS",
+        categoryKey: "hots-cerita",
+        question: "Sebuah persegi panjang memiliki panjang 5 cm lebih dari lebarnya. Jika kelilingnya 50 cm, berapa panjang persegi panjang tersebut?",
+        options: ["10 cm", "15 cm", "20 cm", "25 cm"],
+        correctIndex: 1,
+        explanation: "Misalkan lebar = $l$, maka panjang $p = l + 5$.<br>Keliling = $2(p + l) = 50$<br>$$2(l + 5 + l) = 50$$<br>$$2(2l + 5) = 50 \\implies 4l + 10 = 50$$<br>$$4l = 40 \\implies l = 10$$ cm.<br>Maka, panjang $p = l + 5 = 10 + 5 = 15$ cm."
+      },
+      {
+        id: 34,
+        category: "PLSV Cerita - HOTS",
+        categoryKey: "hots-cerita",
+        question: "Dua kali suatu bilangan ditambah 15 sama dengan tiga kali bilangan tersebut dikurangi 10. Berapakah bilangan itu?",
+        options: ["15", "20", "25", "30"],
+        correctIndex: 2,
+        explanation: "Misalkan bilangan tersebut adalah $x$.<br>$$2x + 15 = 3x - 10$$<br>Kelompokkan suku:<br>$$15 + 10 = 3x - 2x$$<br>$$25 = x \\implies x = 25$$"
+      },
+      {
+        id: 35,
+        category: "PLSV Cerita - HOTS",
+        categoryKey: "hots-cerita",
+        question: "Dalam sebuah lomba, setiap jawaban benar mendapat 4 poin dan setiap jawaban salah mengurangi 1 poin. Seorang peserta memperoleh total 35 poin dari 10 soal dan menjawab semua soal. Jika banyak jawaban benar adalah $x$, tentukan nilai $x$.",
+        options: ["8", "9", "7", "10"],
+        correctIndex: 1,
+        explanation: "Misalkan jumlah benar = $x$, maka jumlah salah = $10 - x$.<br>Skor total = $4(x) - 1(10 - x) = 35$<br>$$4x - 10 + x = 35$$<br>$$5x = 45 \\implies x = 9$$"
+      }
+    ];
+
+    // State Variables
+    let currentIdx = 0;
+    let xp = 0;
+    let userProgress = Array(35).fill(null); // stores { isCorrect: boolean, selectedOption: int }
+    let filteredQuestions = [...questionsData];
+    let currentCategoryFilter = 'semua';
+
+    // Elements
+    const qTextEl = document.getElementById('question-text');
+    const qNumEl = document.getElementById('display-number');
+    const optionsGridEl = document.getElementById('options-grid');
+    const explPanelEl = document.getElementById('explanation-panel');
+    const explTextEl = document.getElementById('explanation-text');
+    const xpCounterEl = document.getElementById('xp-counter');
+    const categoryPillEl = document.getElementById('current-category-pill');
+    const xpBonusPillEl = document.getElementById('xp-bonus-pill');
+    const paginationInfoEl = document.getElementById('pagination-info');
+    const qMapGridEl = document.getElementById('question-map-grid');
+    const btnPrevEl = document.getElementById('btn-prev');
+    const btnNextEl = document.getElementById('btn-next');
+
+    // Init App
+    window.onload = function() {
+      generateQuestionMap();
+      loadQuestion(0);
+      updateStats();
+      initScratchpad();
+    }
+
+    // Render LaTeX safely
+    function renderMath() {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    // Load Question by Index
+    function loadQuestion(idx) {
+      if (idx < 0 || idx >= filteredQuestions.length) return;
+      currentIdx = idx;
+      
+      const q = filteredQuestions[currentIdx];
+      
+      // Update UI elements
+      qNumEl.innerText = `Soal No. ${q.id}`;
+      qTextEl.innerHTML = q.question;
+      categoryPillEl.innerText = `Kategori: ${q.category}`;
+      
+      // Bonus XP config
+      let bonusXp = 10;
+      if (q.categoryKey.includes('sedang')) bonusXp = 20;
+      if (q.categoryKey.includes('hots')) bonusXp = 30;
+      xpBonusPillEl.innerText = `+${bonusXp} XP`;
+
+      // Pagination
+      paginationInfoEl.innerText = `${currentIdx + 1} / ${filteredQuestions.length} Soal`;
+
+      // Render Options
+      optionsGridEl.innerHTML = '';
+      const userAns = userProgress[q.id - 1]; // global question id map (1-indexed)
+
+      q.options.forEach((opt, oIdx) => {
+        const letter = String.fromCharCode(65 + oIdx); // A, B, C, D
+        const button = document.createElement('button');
+        button.className = "w-full text-left p-4 rounded-2xl border-2 flex items-center gap-4 transition duration-200 font-semibold text-sm relative outline-none ";
+        
+        // Base Styling
+        if (userAns === null) {
+          // Unanswered state
+          button.className += "border-gray-100 hover:border-brand-pinkAccent hover:bg-brand-pastelBg bg-white text-gray-700";
+          button.onclick = () => selectOption(oIdx);
+        } else {
+          // Already answered
+          if (oIdx === q.correctIndex) {
+            // Correct Option
+            button.className += "border-green-300 bg-brand-successGreen text-brand-successGreenText";
+          } else if (oIdx === userAns.selectedIdx) {
+            // User picked wrong option
+            button.className += "border-red-300 bg-brand-dangerRed text-brand-dangerRedText";
+          } else {
+            // Non-selected option
+            button.className += "border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed";
+          }
+        }
+
+        button.innerHTML = `
+          <span class="w-8 h-8 rounded-full bg-white/70 border border-current flex items-center justify-center font-bold text-xs shrink-0">${letter}</span>
+          <span>${opt}</span>
+        `;
+        optionsGridEl.appendChild(button);
+      });
+
+      // Show/Hide Explanation Panel
+      if (userAns !== null) {
+        explPanelEl.classList.remove('hidden');
+        explTextEl.innerHTML = q.explanation;
+      } else {
+        explPanelEl.classList.add('hidden');
+      }
+
+      // Sync active state in Map Grid
+      updateMapActiveState();
+      
+      // Re-trigger LaTeX render
+      setTimeout(renderMath, 50);
+    }
+
+    // Handle Option Selection
+    function selectOption(selectedIdx) {
+      const q = filteredQuestions[currentIdx];
+      const isCorrect = selectedIdx === q.correctIndex;
+      
+      // Play Audio Effect
+      playSound(isCorrect ? 'correct' : 'wrong');
+
+      // Update local state
+      userProgress[q.id - 1] = {
+        selectedIdx: selectedIdx,
+        isCorrect: isCorrect
+      };
+
+      // XP calculation
+      if (isCorrect) {
+        let earnedXp = 10;
+        if (q.categoryKey.includes('sedang')) earnedXp = 20;
+        if (q.categoryKey.includes('hots')) earnedXp = 30;
+        xp += earnedXp;
+        xpCounterEl.innerText = xp;
+        
+        // Animate XP badge
+        xpCounterEl.parentElement.classList.add('scale-110', 'bg-amber-100');
+        setTimeout(() => {
+          xpCounterEl.parentElement.classList.remove('scale-110', 'bg-amber-100');
+        }, 300);
+      }
+
+      // Reload question to show styling & feedback
+      loadQuestion(currentIdx);
+      
+      // Update global stats
+      updateStats();
+      
+      // Refresh Map Visuals
+      generateQuestionMap();
+    }
+
+    // Navigation
+    function navigateQuestion(direction) {
+      playSound('click');
+      let target = currentIdx + direction;
+      if (target >= 0 && target < filteredQuestions.length) {
+        loadQuestion(target);
+      }
+    }
+
+    // Jump Directly from Peta Soal Grid
+    function jumpToQuestionById(id) {
+      playSound('click');
+      const idx = filteredQuestions.findIndex(q => q.id === id);
+      if (idx !== -1) {
+        loadQuestion(idx);
+      }
+    }
+
+    // Update Overall Mission Stats
+    function updateStats() {
+      let correct = 0;
+      let wrong = 0;
+      let answered = 0;
+
+      userProgress.forEach(ans => {
+        if (ans !== null) {
+          answered++;
+          if (ans.isCorrect) correct++;
+          else wrong++;
+        }
+      });
+
+      document.getElementById('stat-correct').innerText = correct;
+      document.getElementById('stat-wrong').innerText = wrong;
+      document.getElementById('answered-badge').innerText = `${answered}/35 Terjawab`;
+
+      // Accuracy
+      let accuracy = answered > 0 ? Math.round((correct / answered) * 100) : 0;
+      document.getElementById('stat-accuracy').innerText = `${accuracy}%`;
+
+      // Progress bar
+      const pct = Math.round((answered / 35) * 100);
+      document.getElementById('mission-progress-bar').style.width = `${pct}%`;
+    }
+
+    // Generate/Refresh Peta Soal Buttons
+    function generateQuestionMap() {
+      qMapGridEl.innerHTML = '';
+      
+      // Draw 1-35 list (it always draws complete map of 35)
+      questionsData.forEach(q => {
+        const btn = document.createElement('button');
+        btn.onclick = () => jumpToQuestionById(q.id);
+        
+        // Default Classes
+        btn.className = "h-11 w-full rounded-2xl border font-bold text-sm flex items-center justify-center transition duration-150 ";
+        
+        const ans = userProgress[q.id - 1];
+        if (ans !== null) {
+          if (ans.isCorrect) {
+            btn.className += "bg-green-50 border-green-300 text-green-600 hover:bg-green-100";
+            btn.innerHTML = `<span class="flex flex-col items-center"><span class="text-[10px] leading-3">${q.id}</span><i class="fa-solid fa-circle-check text-[10px]"></i></span>`;
+          } else {
+            btn.className += "bg-red-50 border-red-300 text-red-500 hover:bg-red-100";
+            btn.innerHTML = `<span class="flex flex-col items-center"><span class="text-[10px] leading-3">${q.id}</span><i class="fa-solid fa-circle-xmark text-[10px]"></i></span>`;
+          }
+        } else {
+          btn.className += "bg-white border-gray-100 text-gray-500 hover:border-brand-pinkAccent hover:text-brand-pinkAccentDark";
+          btn.innerText = q.id;
+        }
+
+        // Highlight current question index
+        if (filteredQuestions[currentIdx] && filteredQuestions[currentIdx].id === q.id) {
+          btn.className += " ring-2 ring-brand-pinkAccent border-brand-pinkAccent scale-105";
+        }
+
+        qMapGridEl.appendChild(btn);
+      });
+    }
+
+    // Sync Map Active Ring Only on simple navigation
+    function updateMapActiveState() {
+      const activeQ = filteredQuestions[currentIdx];
+      if (!activeQ) return;
+      
+      // Refresh current highlight
+      const buttons = qMapGridEl.querySelectorAll('button');
+      buttons.forEach((btn, idx) => {
+        const qId = idx + 1;
+        btn.classList.remove('ring-2', 'ring-brand-pinkAccent', 'border-brand-pinkAccent', 'scale-105');
+        if (qId === activeQ.id) {
+          btn.classList.add('ring-2', 'ring-brand-pinkAccent', 'border-brand-pinkAccent', 'scale-105');
+        }
+      });
+    }
+
+    // Filter Question Category
+    function filterCategory(catKey) {
+      playSound('click');
+      currentCategoryFilter = catKey;
+      
+      // Update filter pills highlight
+      const filterButtons = document.getElementById('category-list').querySelectorAll('button');
+      filterButtons.forEach(btn => {
+        btn.className = "w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-gray-600 hover:bg-brand-pastelBg transition duration-200";
+      });
+
+      const activeBtn = document.getElementById(`cat-${catKey}`);
+      if (activeBtn) {
+        activeBtn.className = "w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition duration-200 bg-brand-pinkAccent text-white";
+      }
+
+      // Filter Question Array
+      if (catKey === 'semua') {
+        filteredQuestions = [...questionsData];
+      } else {
+        filteredQuestions = questionsData.filter(q => q.categoryKey === catKey);
+      }
+
+      // Reload
+      loadQuestion(0);
+    }
+  </script>
+
+  <!-- Papan Cakar (Drawing Canvas) Logic -->
+  <script>
+    let canvas, ctx;
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let strokeColor = '#1e293b';
+    let strokeWidth = 4;
+
+    function toggleScratchpad(show) {
+      playSound('click');
+      const modal = document.getElementById('scratchpad-modal');
+      if (show) {
+        modal.classList.remove('hidden');
+        // Delay canvas size init to let modal render completely
+        setTimeout(resizeCanvas, 100);
+      } else {
+        modal.classList.add('hidden');
+      }
+    }
+
+    function initScratchpad() {
+      canvas = document.getElementById('canvas');
+      ctx = canvas.getContext('2d');
+
+      // Mouse Events
+      canvas.addEventListener('mousedown', startDrawing);
+      canvas.addEventListener('mousemove', draw);
+      canvas.addEventListener('mouseup', stopDrawing);
+      canvas.addEventListener('mouseout', stopDrawing);
+
+      // Touch Events (Mobile/Tablet Friendly)
+      canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        lastX = touch.clientX - rect.left;
+        lastY = touch.clientY - rect.top;
+        isDrawing = true;
+      });
+      canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!isDrawing) return;
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = strokeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        lastX = x;
+        lastY = y;
+      });
+      canvas.addEventListener('touchend', () => isDrawing = false);
+
+      // Setup initial active color badge styling
+      setCanvasColor('#1e293b');
+    }
+
+    function resizeCanvas() {
+      const container = document.getElementById('canvas-container');
+      // Save current content
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = canvas.width;
+      tempCanvas.height = canvas.height;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(canvas, 0, 0);
+
+      // Resize
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+
+      // Restore content
+      ctx.drawImage(tempCanvas, 0, 0);
+      
+      // Keep background grids or styling if needed
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = strokeWidth;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    }
+
+    function startDrawing(e) {
+      isDrawing = true;
+      const rect = canvas.getBoundingClientRect();
+      lastX = e.clientX - rect.left;
+      lastY = e.clientY - rect.top;
+    }
+
+    function draw(e) {
+      if (!isDrawing) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = strokeWidth;
+      ctx.stroke();
+
+      lastX = x;
+      lastY = y;
+    }
+
+    function stopDrawing() {
+      isDrawing = false;
+    }
+
+    function clearCanvas() {
+      playSound('click');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function setCanvasColor(color) {
+      playSound('click');
+      strokeColor = color;
+      
+      // Update UI active indicator rings
+      const colorBtns = [
+        { hex: '#1e293b', id: 'color-slate' },
+        { hex: '#ef4444', id: 'color-red' },
+        { hex: '#3b82f6', id: 'color-blue' },
+        { hex: '#10b981', id: 'color-green' }
+      ];
+
+      colorBtns.forEach(btn => {
+        const el = document.getElementById(btn.id);
+        if (btn.hex === color) {
+          el.className = el.className.replace('ring-transparent', 'ring-indigo-400 scale-110');
+        } else {
+          el.className = el.className.replace('ring-indigo-400 scale-110', 'ring-transparent');
+        }
+      });
+    }
+
+    function setBrushSize(size) {
+      strokeWidth = parseInt(size);
+    }
+
+    // Auto-resize canvas on window change
+    window.addEventListener('resize', () => {
+      if (canvas && document.getElementById('scratchpad-modal').classList.contains('hidden') === false) {
+        resizeCanvas();
+      }
+    });
+  </script>
+</body>
+</html>
